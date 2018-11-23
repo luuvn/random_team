@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Random Team</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="yes" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
+    <meta name="viewport" content="width=device-width" />
+    <style>
+        html {
+            background: no-repeat center center fixed;
+            height: 100%;
+            min-height: 100%;
+            background-size: cover;
+            -webkit-background-size: cover;
+            -o-background-size: cover;
+            -moz-background-size: cover;
+        }
+
+        body {
+            min-height: 100%;
+            padding: 0;
+            margin: 0;
+            position: fixed;
+        }
+
+        body,
+        canvas,
+        div {
+            outline: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -khtml-user-select: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script src="/randomTeam/libs/colyseus.js"></script>
+    <script src="/randomTeam/libs/cocos2d-js-v3.16-min.js"></script>
+    <script src="/randomTeam/config.js"></script>
+    <script src="/randomTeam/main.js"></script>
+</body>
+
+</html>
