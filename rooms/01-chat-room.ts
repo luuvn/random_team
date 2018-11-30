@@ -7,8 +7,8 @@ export class ChatRoom extends Room {
     clubs = [];
 
     reset() {
-        this.clubs = ["england", "france", "germany", "croatia", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "dortmund", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
-        this.shuffle(this.clubs);
+        this.clubs = ["england", "france", "germany", "croatia", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
+        this.clubs = this.shuffle(this.clubs);
     }
 
     onInit(options) {
@@ -32,7 +32,9 @@ export class ChatRoom extends Room {
             if (this.clubs.length <= 0) {
                 this.reset();
             }
-            var club = this.clubs.pop();
+            // var club = this.clubs.pop();
+            var clubInex = this.genRandomInt(0, this.clubs.length - 1);
+            var club = this.clubs.splice(clubInex, 1);
 
             this.broadcast(`(${client.sessionId}) ${club.toUpperCase()}. Remain ${this.clubs.length} teams.`);
         } else {
