@@ -36,7 +36,7 @@ export class ChatRoom extends Room {
             var clubInex = this.genRandomInt(0, this.clubs.length - 1);
             var club = this.clubs.splice(clubInex, 1);
 
-            this.broadcast(`(${client.sessionId}) ${club.toUpperCase()}. Remain ${this.clubs.length} teams.`);
+            this.broadcast(`(${client.sessionId}) ${club[0].toUpperCase()}. Remain ${this.clubs.length} teams.`);
         } else {
             this.broadcast(`(${client.sessionId}) ${data.message}`);
         }
