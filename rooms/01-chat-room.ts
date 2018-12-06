@@ -28,27 +28,27 @@ export class ChatRoom extends Room {
     onMessage(client, data) {
         console.log("BasicRoom received message from", client.sessionId, ":", data);
 
-        // if (data.message == "random") {
-        //     if (this.clubs.length <= 0) {
-        //         this.reset();
-        //     }
-        //     // var club = this.clubs.pop();
-        //     var clubInex = this.genRandomInt(0, this.clubs.length - 1);
-        //     var club = this.clubs.splice(clubInex, 1);
+        if (data.message == "random") {
+            if (this.clubs.length <= 0) {
+                this.reset();
+            }
+            // var club = this.clubs.pop();
+            var clubInex = this.genRandomInt(0, this.clubs.length - 1);
+            var club = this.clubs.splice(clubInex, 1);
 
-        //     this.broadcast(`(${client.sessionId}) ${club[0].toUpperCase()}. Remain ${this.clubs.length} teams.`);
-        // } else {
-        //     this.broadcast(`(${client.sessionId}) ${data.message}`);
-        // }
+            this.broadcast(`(${client.sessionId}) ${club[0].toUpperCase()}. Remain ${this.clubs.length} teams.`);
+        } else {
+            this.broadcast(`(${client.sessionId}) ${data.message}`);
+        }
 
-        var index = parseInt(data.message);
-        var club = this.clubs[index];
+        // var index = parseInt(data.message);
+        // var club = this.clubs[index];
 
-        this.broadcast({
-            action: 'show_club',
-            index: index,
-            value: club.toUpperCase()
-        });
+        // this.broadcast({
+        //     action: 'show_club',
+        //     index: index,
+        //     value: club.toUpperCase()
+        // });
     }
 
     onDispose() {
