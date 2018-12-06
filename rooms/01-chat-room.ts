@@ -7,7 +7,7 @@ export class ChatRoom extends Room {
     clubs = [];
 
     reset() {
-        this.clubs = ["england", "france", "germany", "croatia", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
+        this.clubs = ["england", "france", "germany", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
         this.clubs = this.shuffle(this.clubs);
     }
 
