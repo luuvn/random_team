@@ -1,159 +1,192 @@
-var GAME = {};
+// QQPlay window need to be inited first
+if (false) {
+    BK.Script.loadlib('GameRes://libs/qqplay-adapter.js');
+}
 
-cc.game.onStart = function () {
-    var designSize = cc.size(900, 640);
-    cc.view.adjustViewPort(true);
-    cc.view.setDesignResolutionSize(designSize.width, designSize.height, cc.ResolutionPolicy.SHOW_ALL);
-    cc.view.resizeWithBrowserSize(true);
+window.boot = function () {
+    var settings = window._CCSettings;
+    window._CCSettings = undefined;
 
-    // CG_LoaderScene.preload(g_resources, function () {
-    // }, this);
+    if ( !settings.debug ) {
+        var uuids = settings.uuids;
 
-    var Scene = cc.Scene.extend({
-        /**
-         * Handler for enter scene event
-         */
-        onEnter: function () {
-            this._super();
-
-            this._cardQueue = [];
-
-            GAME.MAIN_SCENE = this;
-
-            this._layer = new cc.LayerColor(cc.color.BLACK);
-            this.addChild(this._layer);
-
-        },
-        addCard: function (posX, poY) {
-            var card = new Card();
-            card.ignoreAnchorPointForPosition(false);
-            card.setPosition(posX, poY);
-
-            this._layer.addChild(card);
-            this._cardQueue.push(Card);
-        },
-        initAllClubCard: function (clubs) {
-            this._layer.removeAllChildren();
-
-            var posX = designSize.width * 0.1, posY = designSize.height * 0.9;
-            for (var pos in clubs) {
-                this.addCard(posX, posY);
-
-                posX += designSize.height * 0.2;
+        var rawAssets = settings.rawAssets;
+        var assetTypes = settings.assetTypes;
+        var realRawAssets = settings.rawAssets = {};
+        for (var mount in rawAssets) {
+            var entries = rawAssets[mount];
+            var realEntries = realRawAssets[mount] = {};
+            for (var id in entries) {
+                var entry = entries[id];
+                var type = entry[1];
+                // retrieve minified raw asset
+                if (typeof type === 'number') {
+                    entry[1] = assetTypes[type];
+                }
+                // retrieve uuid
+                realEntries[uuids[id] || id] = entry;
             }
         }
-    });
 
-    var Card = cc.Sprite.extend({
-        ctor: function () {
-            this._super();
-
-            // if ('touches' in cc.sys.capabilities) {
-                cc.eventManager.addListener({
-                    event: cc.EventListener.TOUCH_ONE_BY_ONE,
-                    swallowTouches: true,
-                    onTouchesBegan: function (touch, event) {
-                        // event.getCurrentTarget().changeColor();
-                        var target = event.getCurrentTarget();
-                        if (!target.containsTouchLocation(touch))
-                            return false;
-
-                        return true;
-                    }
-                }, this);
-            // } else if ('mouse' in cc.sys.capabilities) {
-            //     cc.eventManager.addListener({
-            //         event: cc.EventListener.MOUSE,
-            //         swallowTouches: true,
-            //         onMouseDown: function (event) {
-            //             // event.getCurrentTarget().changeColor();
-            //             var target = event.getCurrentTarget();
-            //             if (!target.containsTouchLocation(touch))
-            //                 return false;
-
-            //             return true;
-            //         }
-            //     }, this);
-            // }
-
-            this.setTextureRect(cc.rect(0, 0, designSize.height * 0.2, designSize.height * 0.2));
-            this.setColor(cc.color.GREEN);
-        },
-        containsTouchLocation: function (touch) {
-            var getPoint = touch.getLocation();
-            var myRect = this.rect();
-
-            myRect.x += this.x;
-            myRect.y += this.y;
-            return cc.rectContainsPoint(myRect, getPoint);
-        },
-        changeColor: function () {
-            room.send({ message: "hello" });
-
-            this.setColor(cc.color.YELLOW);
+        var scenes = settings.scenes;
+        for (var i = 0; i < scenes.length; ++i) {
+            var scene = scenes[i];
+            if (typeof scene.uuid === 'number') {
+                scene.uuid = uuids[scene.uuid];
+            }
         }
-    });
 
-    var sence = new Scene();
-    cc.director.runScene(new cc.TransitionFade(0.5, sence));
+        var packedAssets = settings.packedAssets;
+        for (var packId in packedAssets) {
+            var packedIds = packedAssets[packId];
+            for (var j = 0; j < packedIds.length; ++j) {
+                if (typeof packedIds[j] === 'number') {
+                    packedIds[j] = uuids[packedIds[j]];
+                }
+            }
+        }
+    }
 
-    // room process
-    var host = window.document.location.host.replace(/:.*/, '');
+    function setLoadingDisplay () {
+        // Loading splash scene
+        var splash = document.getElementById('splash');
+        var progressBar = splash.querySelector('.progress-bar span');
+        cc.loader.onProgress = function (completedCount, totalCount, item) {
+            var percent = 100 * completedCount / totalCount;
+            if (progressBar) {
+                progressBar.style.width = percent.toFixed(2) + '%';
+            }
+        };
+        splash.style.display = 'block';
+        progressBar.style.width = '0%';
 
-    var client = new Colyseus.Client(location.protocol.replace("http", "ws") + host + (location.port ? ':' + location.port : ''));
-    var room = client.join("random_team");
+        cc.director.once(cc.Director.EVENT_AFTER_SCENE_LAUNCH, function () {
+            splash.style.display = 'none';
+        });
+    }
 
-    var ACTION = {
-        ON_JOIN: "ON_JOIN",
-        ON_LEAVE: "ON_LEAVE",
-        CHOOSE_CLUB: "CHOOSE_CLUB"
+    var onStart = function () {
+        cc.loader.downloader._subpackages = settings.subpackages;
+
+        cc.view.enableRetina(true);
+        cc.view.resizeWithBrowserSize(true);
+
+        if (!false && !false) {
+            if (cc.sys.isBrowser) {
+                setLoadingDisplay();
+            }
+
+            if (cc.sys.isMobile) {
+                if (settings.orientation === 'landscape') {
+                    cc.view.setOrientation(cc.macro.ORIENTATION_LANDSCAPE);
+                }
+                else if (settings.orientation === 'portrait') {
+                    cc.view.setOrientation(cc.macro.ORIENTATION_PORTRAIT);
+                }
+                cc.view.enableAutoFullScreen([
+                    cc.sys.BROWSER_TYPE_BAIDU,
+                    cc.sys.BROWSER_TYPE_WECHAT,
+                    cc.sys.BROWSER_TYPE_MOBILE_QQ,
+                    cc.sys.BROWSER_TYPE_MIUI,
+                ].indexOf(cc.sys.browserType) < 0);
+            }
+
+            // Limit downloading max concurrent task to 2,
+            // more tasks simultaneously may cause performance draw back on some android system / browsers.
+            // You can adjust the number based on your own test result, you have to set it before any loading process to take effect.
+            if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_ANDROID) {
+                cc.macro.DOWNLOAD_MAX_CONCURRENT = 2;
+            }
+        }
+
+        // init assets
+        cc.AssetLibrary.init({
+            libraryPath: 'res/import',
+            rawAssetsBase: 'res/raw-',
+            rawAssets: settings.rawAssets,
+            packedAssets: settings.packedAssets,
+            md5AssetsMap: settings.md5AssetsMap
+        });
+
+        var launchScene = settings.launchScene;
+
+        // load scene
+        cc.director.loadScene(launchScene, null,
+            function () {
+                if (cc.sys.isBrowser) {
+                    // show canvas
+                    var canvas = document.getElementById('GameCanvas');
+                    canvas.style.visibility = '';
+                    var div = document.getElementById('GameDiv');
+                    if (div) {
+                        div.style.backgroundImage = '';
+                    }
+                }
+                cc.loader.onProgress = null;
+                console.log('Success to load scene: ' + launchScene);
+            }
+        );
     };
 
-    room.onJoin.add(function () {
-        console.log("joined");
-    });
+    // jsList
+    var jsList = settings.jsList;
 
-    room.onStateChange.addOnce(function (state) {
-        console.log("initial room state:", state);
-    });
-
-    // new room state
-    room.onStateChange.add(function (state) {
-        // this signal is triggered on each patch
-    });
-
-    // listen to patches coming from the server
-    room.onMessage.add(function (message) {
-        console.log(message);
-
-        switch (message.action) {
-            case ACTION.ON_JOIN:
-                console.log("ACTION.ON_JOIN");
-
-                GAME.MAIN_SCENE.initAllClubCard(message.data.clubs);
-
-                break;
-
-            case ACTION.ON_LEAVE:
-                console.log("ACTION.ON_LEAVE");
-
-                break;
+    if (false) {
+        BK.Script.loadlib();
+    }
+    else {
+        var bundledScript = settings.debug ? 'src/project.dev.js' : 'src/project.js';
+        if (jsList) {
+            jsList = jsList.map(function (x) {
+                return 'src/' + x;
+            });
+            jsList.push(bundledScript);
         }
+        else {
+            jsList = [bundledScript];
+        }
+    }
+    
+    var option = {
+        id: 'GameCanvas',
+        scenes: settings.scenes,
+        debugMode: settings.debug ? cc.debug.DebugMode.INFO : cc.debug.DebugMode.ERROR,
+        showFPS: !false && settings.debug,
+        frameRate: 60,
+        jsList: jsList,
+        groupList: settings.groupList,
+        collisionMatrix: settings.collisionMatrix,
+    }
+
+    cc.game.run(option, onStart);
+};
+
+// main.js is qqplay and jsb platform entry file, so we must leave platform init code here
+if (false) {
+    BK.Script.loadlib('GameRes://src/settings.js');
+    BK.Script.loadlib();
+    BK.Script.loadlib('GameRes://libs/qqplay-downloader.js');
+
+    var ORIENTATIONS = {
+        'portrait': 1,
+        'landscape left': 2,
+        'landscape right': 3
+    };
+    BK.Director.screenMode = ORIENTATIONS[window._CCSettings.orientation];
+    initAdapter();
+    cc.game.once(cc.game.EVENT_ENGINE_INITED, function () {
+        initRendererAdapter();
     });
 
-    // send message to room on submit
-    // document.querySelector("#form").onsubmit = function (e) {
-    //     e.preventDefault();
-
-    //     var input = document.querySelector("#input");
-
-    //     console.log("input:", input.value);
-
-    //     // send data to room
-    //     room.send({ message: input.value });
-
-    //     // clear input
-    //     input.value = "";
-    // }
-};
-cc.game.run();
+    qqPlayDownloader.REMOTE_SERVER_ROOT = "";
+    var prevPipe = cc.loader.md5Pipe || cc.loader.assetLoader;
+    cc.loader.insertPipeAfter(prevPipe, qqPlayDownloader);
+    
+    window.boot();
+}
+else if (window.jsb) {
+    require('src/settings.js');
+    require('src/cocos2d-jsb.js');
+    require('jsb-adapter/engine/index.js');
+    window.boot();
+}

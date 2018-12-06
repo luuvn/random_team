@@ -1,57 +1,86 @@
 import { Room } from "colyseus";
-
-const ACTION = {
-    ON_JOIN: "ON_JOIN",
-    ON_LEAVE: "ON_LEAVE",
-    CHOOSE_CLUB: "CHOOSE_CLUB"
-};
+import { crypto } from "crypto";
 
 export class RandomTeamRoom extends Room {
     // this room supports only 4 clients connected
     maxClients = 4;
-
     clubs = [];
-    players = {};
 
-    onInit (options) {
-        this.clubs = ["A", "B", "C", "D"];
-        this.players = {};
+    reset() {
+        this.clubs = ["england", "france", "germany", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
+        this.clubs = this.shuffle(this.clubs);
+    }
 
+    onInit(options) {
         console.log("BasicRoom created!", options);
+
+        this.reset();
     }
 
-    onJoin (client) {
-        this.players[client.sessionId] = {
-            clientId: client.clientId
-        };
-
-        this.broadcast({
-            action: ACTION.ON_JOIN,
-            data: {
-                players: this.players,
-                clubs: this.clubs
-            }
-        });
+    onJoin(client) {
+        this.broadcast(`${client.sessionId} joined.`);
     }
 
-    onLeave (client) {
-        delete this.players[client.sessionId];
-
-        this.broadcast({
-            action: ACTION.ON_LEAVE,
-            data: {
-                players: this.players
-            }
-        });
+    onLeave(client) {
+        this.broadcast(`${client.sessionId} left.`);
     }
 
-    onMessage (client, data) {
+    onMessage(client, data) {
         console.log("BasicRoom received message from", client.sessionId, ":", data);
-        this.broadcast(`(${ client.sessionId }) ${ data.message }`);
+
+        var index = parseInt(data.message);
+        var club = this.clubs[index];
+
+        this.broadcast({
+            action: 'show_club',
+            index: index,
+            value: club.toUpperCase()
+        });
     }
 
-    onDispose () {
+    onDispose() {
         console.log("Dispose BasicRoom");
     }
 
+    shuffle(array) {
+        var counter = array.length, temp, index;
+
+        for (var i = counter - 1; i >= 1; i--) {      // GLI
+            // Pick a random index
+            index = this.genRandomInt(0, i);            // GLI
+
+            // And swap the last element with it
+            temp = array[i];
+            array[i] = array[index];
+            array[index] = temp;
+        }
+
+        return array;
+    }
+
+    genRandomInt(min, max) {
+        try {
+            var totalRandom = max - min + 1;
+            var exclude = Math.pow(2, 32) - (Math.pow(2, 32) % totalRandom);
+            var biasCount = 0;
+
+            do {
+                // get random 4 bytes
+                var hexBuffStr = "";
+                var buff = crypto.randomBytes(4);
+
+                var randomDev = buff.readUInt32LE(0);
+
+                if (randomDev < exclude) {
+                    var ret = (randomDev % totalRandom) + min;
+                    return ret;
+                }
+
+                biasCount++;
+            }
+            while (true);
+        } catch (e) {
+            return Math.floor((Math.random() * (max - min + 1)) + min);
+        }
+    }
 }
