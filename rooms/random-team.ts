@@ -11,14 +11,34 @@ class State {
 
     reset() {
         this.allClubs = this.shuffle(this.allClubs);
+
+        this.openedClubs = [];
+    }
+
+    checkConditionReset() {
+        if (this.openedClubs.length >= this.numOfClubs) {
+            console.log("Reset");
+            this.reset();
+        }
     }
 
     openCard(index: any) {
         var club = this.allClubs[index];
-        this.openedClubs.push({
-            index: index,
-            value: club.toUpperCase()
-        });
+
+        var alreadyIn = false;
+        for (var pos in this.openedClubs) {
+            if (this.openedClubs[pos].value == club.toUpperCase()) {
+                alreadyIn = true;
+                break;
+            }
+        }
+
+        if (!alreadyIn) {
+            this.openedClubs.push({
+                index: index,
+                value: club.toUpperCase()
+            });
+        }
     }
 
     shuffle(array) {
@@ -68,6 +88,8 @@ export class RandomTeamRoom extends Room<State> {
     // this room supports only 4 clients connected
     maxClients = 4;
 
+    autoDispose = false;
+
     onInit(options) {
         console.log("RandomTeamRoom created!", options);
 
@@ -81,11 +103,12 @@ export class RandomTeamRoom extends Room<State> {
 
     onLeave(client) {
         this.broadcast(`${client.sessionId} left.`);
+
+        this.state.checkConditionReset();
     }
 
     onMessage(client, data) {
         console.log("RandomTeamRoom received message from", client.sessionId, ":", data);
-
         var index = parseInt(data.message);
 
         this.state.openCard(index);
