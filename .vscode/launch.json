@@ -9,19 +9,33 @@
             "request": "attach",
             "name": "Attach by Process ID",
             "processId": "${command:PickProcess}"
-        }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Random Team",
+            "cwd": "${workspaceRoot}",
+            "port": 9229,
+            "program": "",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "start"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
         // {
         //     "type": "node",
         //     "request": "launch",
         //     "name": "Random Team",
-        //     "program": "nodemon",
-        //     "args": [
-        //         "--watch",
-        //         "'**/*.ts'",
-        //         "--exec",
-        //         "ts-node",
+        //     "cwd": "${workspaceRoot}",
+        //     "runtimeExecutable": "node",
+        //     "runtimeArgs": [
+        //         "-r",
+        //         "ts-node/register",
         //         "index.ts"
         //     ],
+        //     "program": "",
         //     "console": "integratedTerminal",
         //     "internalConsoleOptions": "openOnSessionStart"
         // }

@@ -17,8 +17,7 @@ const app = express();
 
 // Attach WebSocket Server on HTTP Server.
 const gameServer = new Server({
-  server: createServer(app),
-  pingTimeout: 24 * 60 * 60 * 1000
+  server: createServer(app)
 });
 
 // Register ChatRoom as "chat"
