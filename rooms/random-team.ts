@@ -1,45 +1,24 @@
-import { Room } from "colyseus";
+import { Room, nosync } from "colyseus";
 import { crypto } from "crypto";
 
-export class RandomTeamRoom extends Room {
-    // this room supports only 4 clients connected
-    maxClients = 4;
-    clubs = [];
+class State {
+    @nosync
+    allClubs = ["england", "france", "germany", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
+
+    numOfClubs = this.allClubs.length;
+
+    openedClubs = [];
 
     reset() {
-        this.clubs = ["england", "france", "germany", "italy", "argentina", "man u", "man c", "arsenal", "chelsea", "tottenham", "liverpool", "bayern", "psg", "real", "barcelona", "atletico madrid", "inter", "juventus", "napoli", "belgium", "portugal", "spain"];
-        this.clubs = this.shuffle(this.clubs);
+        this.allClubs = this.shuffle(this.allClubs);
     }
 
-    onInit(options) {
-        console.log("BasicRoom created!", options);
-
-        this.reset();
-    }
-
-    onJoin(client) {
-        this.broadcast(`${client.sessionId} joined.`);
-    }
-
-    onLeave(client) {
-        this.broadcast(`${client.sessionId} left.`);
-    }
-
-    onMessage(client, data) {
-        console.log("BasicRoom received message from", client.sessionId, ":", data);
-
-        var index = parseInt(data.message);
-        var club = this.clubs[index];
-
-        this.broadcast({
-            action: 'show_club',
+    openCard(index: any) {
+        var club = this.allClubs[index];
+        this.openedClubs.push({
             index: index,
             value: club.toUpperCase()
         });
-    }
-
-    onDispose() {
-        console.log("Dispose BasicRoom");
     }
 
     shuffle(array) {
@@ -82,5 +61,37 @@ export class RandomTeamRoom extends Room {
         } catch (e) {
             return Math.floor((Math.random() * (max - min + 1)) + min);
         }
+    }
+};
+
+export class RandomTeamRoom extends Room<State> {
+    // this room supports only 4 clients connected
+    maxClients = 4;
+
+    onInit(options) {
+        console.log("RandomTeamRoom created!", options);
+
+        this.setState(new State());
+        this.state.reset();
+    }
+
+    onJoin(client) {
+        this.broadcast(`${client.sessionId} joined.`);
+    }
+
+    onLeave(client) {
+        this.broadcast(`${client.sessionId} left.`);
+    }
+
+    onMessage(client, data) {
+        console.log("RandomTeamRoom received message from", client.sessionId, ":", data);
+
+        var index = parseInt(data.message);
+
+        this.state.openCard(index);
+    }
+
+    onDispose() {
+        console.log("Dispose BasicRoom");
     }
 }
